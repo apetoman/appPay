@@ -1,5 +1,15 @@
 apply plugin: 'com.android.application'
 
+
+//签名文件配置
+def propsFile = file("./keystore/key-config.properties")
+Properties keyProps = new Properties()
+keyProps.load(new FileInputStream(propsFile))
+//打包时间
+static def packageTime() {
+    return new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("UTC-8"))
+}
+
 android {
     compileSdkVersion 28
     buildToolsVersion "29.0.3"
@@ -17,6 +27,45 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    signingConfigs {
+        def vStoreFile = file(keyProps['storeFile'].toString())
+        def vStorePwd = keyProps['storePassword'].toString()
+        def vKeyAlias = keyProps['keyAlias'].toString()
+        def vKeyPwd = keyProps['keyPassword'].toString()
+        release {
+            storeFile vStoreFile
+            storePassword vStorePwd
+            keyAlias vKeyAlias
+            keyPassword vKeyPwd
+        }
+    }
+    //修改生成的最终文件名
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            outputFileName = "Onemile-v${variant.versionName}-${variant.name}-${packageTime()}.apk"
+        }
+    }
+
+    buildTypes {
+        debug {
+            buildConfigField "boolean", "LOG_DEBUG", "true"
+            buildConfigField "boolean", "USE_CANARY", "false"
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+        release {
+            buildConfigField "boolean", "LOG_DEBUG", "false"
+            buildConfigField "boolean", "USE_CANARY", "false"
+            minifyEnabled true
+            shrinkResources true
+            zipAlignEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+
 
     //告诉gradle，编译中依赖的jar包存储指定的目录
     repositories {
@@ -75,13 +124,13 @@ dependencies {
         exclude module: 'okio'
     }
 
-    //请求日志
-    implementation('com.github.ihsanbal:LoggingInterceptor:3.1.0-rc5') {
-        exclude group: 'org.json', module: 'json'
-    }
+//    //请求日志
+//    implementation('com.github.ihsanbal:LoggingInterceptor:3.1.0-rc5') {
+//        exclude group: 'org.json', module: 'json'
+//    }
 
 
     implementation(name: 'alipaySdk-15.7.4-20200228192259', ext: 'aar')
-    implementation(name: 'paylibrary-release', ext: 'aar')
-   // implementation project(':paylibrary')
+   // implementation(name: 'paylibrary-release', ext: 'aar')
+    implementation project(':paylibrary')
 }

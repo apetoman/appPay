@@ -5,14 +5,12 @@ buildscript {
         google()
         jcenter()
 
-        flatDir {
-            dirs 'libs', '../paylibrary/libs'
-        }
         
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.5.0-rc01'
-        
+        //添加bintray环境
+        classpath 'com.novoda:bintray-release:0.9.1'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -25,9 +23,7 @@ allprojects {
         mavenCentral()
         maven { url "https://jitpack.io" }
 
-//        flatDir {
-//            dirs 'libs', '../paylibrary/libs'
-//        }
+
     }
 }
 
